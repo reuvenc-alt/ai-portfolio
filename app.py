@@ -15,6 +15,8 @@ import plotly.graph_objects as go
 from data_engine import fetch_us_data, calculate_technical_indicators, MonteCarloRiskEngine, run_live_data_background, send_phone_alert, get_quick_recommendation
 from ai_core import analyze_stock_with_ai
 from portfolio import load_portfolio, save_portfolio
+from market_scanner import scan_market
+from universe import get_universe
 
 # הפעלת זרם הנתונים החי ברקע
 if 'ws_running' not in st.session_state:
@@ -174,6 +176,51 @@ if analyze_portfolio_btn:
         sc1.metric("🟢 קנייה/הגדלה", buy_count)
         sc2.metric("🟠 החזקה", hold_count)
         sc3.metric("🔴 צמצום/מכירה", sell_count)
+
+st.divider()
+
+# ==========================================
+# יש לי סכום להשקיע - מה לקנות? (סריקת כל השווקים + הצעת תיק)
+# ==========================================
+st.header("💰 יש לי סכום להשקיע — מה לקנות?")
+st.markdown("הזן סכום, והמערכת תסרוק את כל השווקים (ארה\"ב + ת\"א) ותציע איך לפזר אותו לפי עוצמת איתותי הקנייה הנוכחיים.")
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def cached_market_scan(scope, min_score):
+    return scan_market(get_universe(scope), min_score=min_score, limit=30)
+
+ic1, ic2, ic3 = st.columns([2, 1, 1])
+with ic1:
+    invest_amount = st.number_input("סכום להשקעה ($)", min_value=0.0, value=1000.0, step=100.0)
+with ic2:
+    scan_scope = st.selectbox("שווקים", ["US+IL", "US", "IL"], index=0)
+with ic3:
+    num_picks = st.number_input("כמה מניות לפזר", min_value=1, max_value=20, value=6)
+
+if st.button("🔎 סרוק את השווקים והצע תיק"):
+    with st.spinner("סורק עד 120 ניירות בכל השווקים... זה עשוי לקחת עד דקה."):
+        hits = cached_market_scan(scan_scope, 4)
+    if not hits:
+        st.warning("לא נמצאו כרגע איתותי קנייה חזקים בשווקים. נסה שוב מאוחר יותר.")
+    else:
+        top = hits[:int(num_picks)]
+        total_score = sum(h["score"] for h in top) or 1
+        rows = []
+        for h in top:
+            weight = h["score"] / total_score
+            alloc = invest_amount * weight
+            shares = int(alloc // h["price"]) if h["price"] else 0
+            rows.append({
+                "סימול": h["symbol"],
+                "מחיר": f"${h['price']}",
+                "עוצמת איתות": f"{h['score']}/9",
+                "הקצאה מומלצת": f"${alloc:,.0f} ({weight*100:.0f}%)",
+                "מס' מניות (משוער)": shares,
+                "נימוק": ", ".join(h["reasons"]),
+            })
+        st.success(f"נמצאו {len(hits)} הזדמנויות. הצעת פיזור ל-${invest_amount:,.0f} על פני {len(top)} המובילות:")
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        st.caption("⚠️ ההקצאה משוקללת לפי עוצמת האיתות הטכני בלבד. זוהי אינה המלצת השקעה — קבל החלטות באחריותך.")
 
 st.divider()
 
