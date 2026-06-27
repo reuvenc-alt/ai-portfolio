@@ -1,0 +1,35 @@
+name: AI Portfolio Scanner
+
+# רץ בענן בתזמון קבוע - שולח התראות מייל בלי תלות במחשב שלך.
+on:
+  schedule:
+    # זמני UTC. רץ בימי חול בבוקר ובאמצע יום המסחר בארה"ב.
+    - cron: "0 13 * * 1-5"
+    - cron: "0 19 * * 1-5"
+  workflow_dispatch: {}   # מאפשר הרצה ידנית מ-GitHub בלחיצת כפתור
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scan (once)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+          EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+          WATCHLIST: ${{ secrets.WATCHLIST }}
+          MARKET_SCOPE: "US+IL"
+          MARKET_MIN_SCORE: "4"
+        run: python worker.py once

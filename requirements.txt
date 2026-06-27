@@ -1,0 +1,11 @@
+streamlit
+pandas
+numpy
+plotly
+requests
+python-dotenv
+openai
+finnhub-python
+scipy
+websocket-client
+yfinance

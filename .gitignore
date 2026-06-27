@@ -1,0 +1,17 @@
+# סודות - לעולם לא להעלות ל-GitHub!
+.env
+.streamlit/secrets.toml
+
+# קבצים שנוצרים בזמן ריצה
+worker.log
+alert_state.json
+
+# Claude Code
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
