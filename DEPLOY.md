@@ -37,9 +37,9 @@ git push -u origin main
    ```toml
    OPENAI_API_KEY = "sk-..."
    FINNHUB_API_KEY = "..."
-   EMAIL_SENDER = "reuvenc212@gmail.com"
+   EMAIL_SENDER = "you@gmail.com"
    EMAIL_APP_PASSWORD = "סיסמת-האפליקציה-16-תווים"
-   EMAIL_RECIPIENT = "reuvenc212@gmail.com"
+   EMAIL_RECIPIENT = "you@gmail.com"
    ```
 4. **Deploy**. תוך דקה תקבל כתובת `https://<your-app>.streamlit.app` — פתח אותה בנייד והוסף למסך הבית.
 
